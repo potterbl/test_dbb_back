@@ -77,6 +77,28 @@ Additional Information:
 
 </details>
 
+### Prerequisites
+
+Before you proceed, make sure you have the following prerequisites installed:
+
+- [Node.js](https://nodejs.org/) and [npm](https://www.npmjs.com/) installed on your machine.
+- [PostgreSQL](https://www.postgresql.org/) installed and running.
+
+### Configuration (.env file)
+
+You need to provide configuration settings in a `.env` file. Below are the required environment variables and :
+
+```plaintext
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=potter
+DB_PASSWORD=vladvador08
+DB_NAME=test_dbb
+JWT_KEY=key
+BORROWING_LIMIT=10
+```
+
+
 ## Schema Design and Relationship Management
 
 ### AuthorEntity
@@ -113,3 +135,27 @@ Additional Information:
 - **login**: Login username of the user.
 - **password**: Encrypted password of the user.
 
+## Installation and Setup
+
+1. **Clone the repository:**
+
+`git clone https://github.com/potterbl/test_dbb_back`
+
+
+2. **Install dependencies:**
+
+```
+
+cd test_dbb_back
+
+npm install
+
+```
+
+## Running the Project
+
+1. **Start the server:**
+
+`npm run start`
+
+### * Also you can see web-documentation while server is running by url `localhost:3000/api`
