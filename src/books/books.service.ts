@@ -69,14 +69,15 @@ export class BooksService {
             const book = await this.bookRepo.findOne({
                 where: {
                     id: bookId
-                }
+                },
+                relations: ["currentUser"]
             })
 
             if(!user || !book) throw new NotFoundException("Something wasn't found")
 
-            if(book.currentUser !== null) throw new ConflictException("Book in rent now")
+            if(book.currentUser !== null ) throw new ConflictException("Book in rent now")
 
-            if(user.books.length >= parseInt(process.env.BORROWING_LIMIT)) throw new ConflictException("Maximum count for borrowing reached")
+            if(user.books.length && user.books.length >= parseInt(process.env.BORROWING_LIMIT)) throw new ConflictException("Maximum count for borrowing reached")
 
             await this.usersService.addBookToUser(book, user.id)
 
@@ -86,7 +87,7 @@ export class BooksService {
 
             return await this.bookRepo.save(book)
         } catch (e) {
-            throw new Error(e)
+            throw e
         }
     }
 
@@ -126,9 +127,14 @@ export class BooksService {
 
             if(!book) throw new NotFoundException("Book wasn't found")
 
+            book.history.forEach(entry => {
+                delete entry.User.login;
+                delete entry.User.password;
+            });
+
             return book.history
         } catch (e) {
-            throw new Error(e)
+            throw e
         }
     }
 }

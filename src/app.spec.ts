@@ -4,16 +4,10 @@ import * as request from 'supertest';
 import {Connection, QueryRunner} from "typeorm";
 import {UserEntity} from "./entities/user.entity";
 import {AuthorEntity} from "./entities/author.entity";
-import {AuthorClear1710968696974} from "./migrations/1710968696974-AuthorClear";
-import {BookEntity} from "./entities/book.entity";
-import {BookClear1710969240733} from "./migrations/1710969240733-BookClear";
+import {BookEntity, IHistory} from "./entities/book.entity";
 import {PublisherEntity} from "./entities/publisher.entity";
-import {PublisherClear1710969553150} from "./migrations/1710969553150-PublisherClear";
 import {GenreEntity} from "./entities/genre.entity";
-import {GenreClear1710969653985} from "./migrations/1710969653985-GenreClear";
-import {UserClear1710979952974} from "./migrations/1710979952974-UserClear";
-import {BookAuthorRelationClear1711039219772} from "./migrations/1711039219772-BookAuthorRelationClear";
-import {BookGenresRelationClear1711039230709} from "./migrations/1711039230709-BookGenresRelationClear";
+import {ClearDatabase1711051256678} from "./migrations/1711051256678-ClearDatabase";
 
 describe("Authors controller", () => {
     let app;
@@ -33,7 +27,7 @@ describe("Authors controller", () => {
     afterAll(async () => {
         const queryRunner = connection.createQueryRunner();
         try {
-            await applyMigration(new AuthorClear1710968696974(), queryRunner);
+            await applyMigration(new ClearDatabase1711051256678(), queryRunner);
         } finally {
             await queryRunner.release();
         }
@@ -44,13 +38,7 @@ describe("Authors controller", () => {
     beforeEach(async () => {
         const queryRunner = connection.createQueryRunner();
         try {
-            await applyMigration(new BookAuthorRelationClear1711039219772(), queryRunner);
-            await applyMigration(new BookGenresRelationClear1711039230709(), queryRunner);
-            await applyMigration(new AuthorClear1710968696974(), queryRunner);
-            await applyMigration(new BookClear1710969240733(), queryRunner);
-            await applyMigration(new PublisherClear1710969553150(), queryRunner);
-            await applyMigration(new GenreClear1710969653985(), queryRunner);
-            await applyMigration(new UserClear1710979952974(), queryRunner);
+            await applyMigration(new ClearDatabase1711051256678(), queryRunner);
         } finally {
             await queryRunner.release();
         }
@@ -168,7 +156,7 @@ describe("Books controller", () => {
     afterAll(async () => {
         const queryRunner = connection.createQueryRunner();
         try {
-            await applyMigration(new AuthorClear1710968696974(), queryRunner);
+            await applyMigration(new ClearDatabase1711051256678(), queryRunner);
         } finally {
             await queryRunner.release();
         }
@@ -179,13 +167,7 @@ describe("Books controller", () => {
     beforeEach(async () => {
         const queryRunner = connection.createQueryRunner();
         try {
-            await applyMigration(new BookAuthorRelationClear1711039219772(), queryRunner);
-            await applyMigration(new BookGenresRelationClear1711039230709(), queryRunner);
-            await applyMigration(new AuthorClear1710968696974(), queryRunner);
-            await applyMigration(new PublisherClear1710969553150(), queryRunner);
-            await applyMigration(new GenreClear1710969653985(), queryRunner);
-            await applyMigration(new UserClear1710979952974(), queryRunner);
-            await applyMigration(new BookClear1710969240733(), queryRunner);
+            await applyMigration(new ClearDatabase1711051256678(), queryRunner);
         } finally {
             await queryRunner.release();
         }
@@ -261,7 +243,7 @@ describe("Books controller", () => {
 
         const token = tokenResponse.body.token
 
-        const response = await request(app.getHttpServer())
+        return await request(app.getHttpServer())
             .post('/books')
             .set('Authorization', token)
             .send({
@@ -272,32 +254,103 @@ describe("Books controller", () => {
                 publisher: publisher.id,
                 publishDate: new Date()
             })
+            .expect(401);
+    });
+
+    it('/books/{:id}/history (POST) [EMPTY]', async () => {
+        const author = await createAndSaveTestAuthor();
+        const genre = await createAndSaveTestGenre();
+        const publisher = await createAndSaveTestPublisher();
+        const book = await createAndSaveTestBook(author, publisher, genre)
+
+        return await request(app.getHttpServer())
+            .get(`/books/${book.id}/history`)
+            .expect(200)
+            .expect([])
+    });
+
+    it('/books/{:id}/history (POST) [NOT EMPTY]', async () => {
+        const user = await createAndSaveTestUser()
+        const author = await createAndSaveTestAuthor();
+        const genre = await createAndSaveTestGenre();
+        const publisher = await createAndSaveTestPublisher();
+        const book = await createAndSaveTestBook(author, publisher, genre, {
+            User: user,
+            DateBorrow: new Date(),
+            DateReturn: null
+        }, user)
+
+        const response = await request(app.getHttpServer())
+            .get(`/books/${book.id}/history`)
+            .expect(200);
+
+        expect(response.body.length).toBeGreaterThan(0);
+        expect(response.body[0]).toEqual(expect.objectContaining({
+            User: expect.objectContaining({
+                id: expect.any(Number),
+                role: expect.any(String),
+            }),
+            DateBorrow: expect.any(String),
+            DateReturn: null
+        }));
+    });
+
+    it('/books/borrow (POST)', async () => {
+        const user = await createAndSaveTestUser();
+        const author = await createAndSaveTestAuthor();
+        const genre = await createAndSaveTestGenre();
+        const publisher = await createAndSaveTestPublisher();
+        const book = await createAndSaveTestBook(author, publisher, genre);
+
+        const tokenResponse = await request(app.getHttpServer())
+            .post('/auth/login')
+            .send({
+                login: user.login,
+                password: user.password
+            });
+
+        const token = tokenResponse.body.token;
+
+        return await request(app.getHttpServer())
+            .post('/books/borrow')
+            .set('Authorization', token)
+            .send({
+                book: book.id
+            })
+            .expect(201);
+    });
+
+    it('/books/return (POST)', async () => {
+        const user = await createAndSaveTestUser();
+        const author = await createAndSaveTestAuthor();
+        const genre = await createAndSaveTestGenre();
+        const publisher = await createAndSaveTestPublisher();
+        const book = await createAndSaveTestBook(author, publisher, genre);
+
+        const tokenResponse = await request(app.getHttpServer())
+            .post('/auth/login')
+            .send({
+                login: user.login,
+                password: user.password
+            });
+
+        const token = tokenResponse.body.token;
+
+        await request(app.getHttpServer())
+            .post('/books/borrow')
+            .set('Authorization', token)
+            .send({
+                book: book.id
+            })
             .expect(201);
 
-        expect(response.body).toEqual(expect.objectContaining({
-            id: expect.any(Number),
-            title: 'Test title',
-            isbn: '1234567891011',
-            publishDate: expect.any(String),
-            authors: expect.arrayContaining([
-                expect.objectContaining({
-                    id: author.id,
-                    name: author.name,
-                    birthday: author.birthday.toISOString(),
-                })
-            ]),
-            publisher: expect.objectContaining({
-                id: publisher.id,
-                title: publisher.title,
-                establishedYear: publisher.establishedYear,
-            }),
-            genres: expect.arrayContaining([
-                expect.objectContaining({
-                    title: genre.title,
-                })
-            ]),
-            history: expect.any(Array)
-        }));
+        return await request(app.getHttpServer())
+            .post('/books/return')
+            .set('Authorization', token)
+            .send({
+                book: book.id
+            })
+            .expect(201);
     });
 
     async function createAndSaveTestUserAdmin(): Promise<UserEntity> {
@@ -314,6 +367,7 @@ describe("Books controller", () => {
 
         user.login = "user"
         user.password = "user"
+        user.books = []
 
         return await connection.getRepository(UserEntity).save(user);
     }
@@ -333,6 +387,277 @@ describe("Books controller", () => {
         const genre = new GenreEntity();
         genre.title = 'Test Genre';
         return await connection.getRepository(GenreEntity).save(genre);
+    }
+    async function createAndSaveTestBook(author: AuthorEntity, publisher: PublisherEntity, genre: GenreEntity, history?: IHistory, user?: UserEntity): Promise<BookEntity> {
+        const book = new BookEntity();
+        book.title = 'some title';
+        book.isbn = '1234567891011';
+        book.authors = [author];
+        book.publisher = publisher;
+        book.genres = [genre];
+        book.publishDate = new Date();
+        if(history){
+            book.history = [history]
+            book.currentUser = user
+        } else {
+            book.history = []
+            book.currentUser = null
+        }
+        return await connection.getRepository(BookEntity).save(book);
+    }
+})
+
+describe('Auth controller', () => {
+    let app;
+    let connection: Connection;
+
+    beforeAll(async () => {
+        const moduleFixture: TestingModule = await Test.createTestingModule({
+            imports: [AppModule],
+        }).compile();
+
+        app = moduleFixture.createNestApplication();
+        await app.init();
+
+        connection = moduleFixture.get<Connection>(Connection);
+    });
+
+    afterAll(async () => {
+        const queryRunner = connection.createQueryRunner();
+        try {
+            await applyMigration(new ClearDatabase1711051256678(), queryRunner);
+        } finally {
+            await queryRunner.release();
+        }
+        await connection.close();
+        await app.close();
+    });
+
+    beforeEach(async () => {
+        const queryRunner = connection.createQueryRunner();
+        try {
+            await applyMigration(new ClearDatabase1711051256678(), queryRunner);
+        } finally {
+            await queryRunner.release();
+        }
+    })
+
+    it('/auth/sign (POST)', async () => {
+        const response = await request(app.getHttpServer())
+            .post('/auth/sign')
+            .send({
+                login: "test login",
+                password: "test password",
+            })
+            .expect(201)
+
+        return expect(response.body).toEqual(expect.objectContaining({
+            token: expect.any(String)
+        }));
+    })
+
+    it('/auth/login (POST)', async () => {
+        const user = await createAndSaveTestUser();
+        const response = await request(app.getHttpServer())
+            .post('/auth/login')
+            .send({
+                login: user.login,
+                password: user.password
+            })
+            .expect(201)
+
+        return expect(response.body).toEqual(expect.objectContaining({
+            token: expect.any(String)
+        }));
+    })
+
+    async function createAndSaveTestUser(): Promise<UserEntity> {
+        const user = new UserEntity();
+
+        user.login = "user"
+        user.password = "user"
+
+        return await connection.getRepository(UserEntity).save(user);
+    }
+})
+
+describe('Genres controller', () => {
+    let app;
+    let connection: Connection;
+
+    beforeAll(async () => {
+        const moduleFixture: TestingModule = await Test.createTestingModule({
+            imports: [AppModule],
+        }).compile();
+
+        app = moduleFixture.createNestApplication();
+        await app.init();
+
+        connection = moduleFixture.get<Connection>(Connection);
+    });
+
+    afterAll(async () => {
+        const queryRunner = connection.createQueryRunner();
+        try {
+            await applyMigration(new ClearDatabase1711051256678(), queryRunner);
+        } finally {
+            await queryRunner.release();
+        }
+        await connection.close();
+        await app.close();
+    });
+
+    beforeEach(async () => {
+        const queryRunner = connection.createQueryRunner();
+        try {
+            await applyMigration(new ClearDatabase1711051256678(), queryRunner);
+        } finally {
+            await queryRunner.release();
+        }
+    })
+
+    it('/genres (POST)', async () => {
+        const admin = await createAndSaveTestUserAdmin()
+
+        const tokenResponse = await request(app.getHttpServer())
+            .post('/auth/login')
+            .send({
+                login: admin.login,
+                password: admin.password
+            })
+            .expect(201)
+
+        const token = tokenResponse.body.token
+
+        return await request(app.getHttpServer())
+            .post('/genres')
+            .set('Authorization', token)
+            .send({
+                title: "test"
+            })
+            .expect(201)
+    })
+
+    async function createAndSaveTestUserAdmin(): Promise<UserEntity> {
+        const user = new UserEntity();
+
+        user.login = "admin"
+        user.password = "admin"
+        user.role = "admin"
+
+        return await connection.getRepository(UserEntity).save(user);
+    }
+})
+
+describe('Publishers controller', () => {
+    let app;
+    let connection: Connection;
+
+    beforeAll(async () => {
+        const moduleFixture: TestingModule = await Test.createTestingModule({
+            imports: [AppModule],
+        }).compile();
+
+        app = moduleFixture.createNestApplication();
+        await app.init();
+
+        connection = moduleFixture.get<Connection>(Connection);
+    });
+
+    afterAll(async () => {
+        const queryRunner = connection.createQueryRunner();
+        try {
+            await applyMigration(new ClearDatabase1711051256678(), queryRunner);
+        } finally {
+            await queryRunner.release();
+        }
+        await connection.close();
+        await app.close();
+    });
+
+    beforeEach(async () => {
+        const queryRunner = connection.createQueryRunner();
+        try {
+            await applyMigration(new ClearDatabase1711051256678(), queryRunner);
+        } finally {
+            await queryRunner.release();
+        }
+    })
+
+    it('/publishers (POST)', async () => {
+        const admin = await createAndSaveTestUserAdmin()
+
+        const tokenResponse = await request(app.getHttpServer())
+            .post('/auth/login')
+            .send({
+                login: admin.login,
+                password: admin.password
+            })
+            .expect(201)
+
+        const token = tokenResponse.body.token
+
+        return await request(app.getHttpServer())
+            .post('/publishers')
+            .set('Authorization', token)
+            .send({
+                title: "test",
+                establishedYear: new Date().getFullYear()
+            })
+            .expect(201)
+    })
+
+    it('/publishers (GET) [EMPTY]', async () => {
+        return await request(app.getHttpServer())
+            .get('/publishers')
+            .expect(200)
+            .expect([])
+    })
+
+
+    it('/publishers (GET) [BOT EMPTY]', async () => {
+        const admin = await createAndSaveTestUserAdmin()
+
+        const tokenResponse = await request(app.getHttpServer())
+            .post('/auth/login')
+            .send({
+                login: admin.login,
+                password: admin.password
+            })
+            .expect(201)
+
+        const token = tokenResponse.body.token
+
+        await request(app.getHttpServer())
+            .post('/publishers')
+            .set('Authorization', token)
+            .send({
+                title: "test",
+                establishedYear: new Date().getFullYear()
+            })
+            .expect(201)
+
+        const response = await request(app.getHttpServer())
+            .get('/publishers')
+            .expect(200)
+
+        expect(response.body.length).toBeGreaterThan(0);
+        expect(response.body[0]).toEqual(expect.objectContaining({
+            books: expect.any(Array),
+            establishedYear: expect.any(Number),
+            id: expect.any(Number),
+            title: expect.any(String)
+        }));
+    })
+
+    async function createAndSaveTestUserAdmin(): Promise<UserEntity> {
+        const user = new UserEntity();
+
+        user.login = "admin"
+        user.password = "admin"
+        user.role = "admin"
+
+        return await connection.getRepository(UserEntity).save(user);
     }
 })
 

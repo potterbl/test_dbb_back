@@ -45,7 +45,8 @@ export class UsersService {
                 const candidate = await this.userRepo.findOne({
                     where: {
                         id: jwtPayloads.id
-                    }
+                    },
+                    relations: ["books"]
                 })
 
                 if(!candidate) throw new UnauthorizedException("User wasn't found")
@@ -55,7 +56,8 @@ export class UsersService {
                 const candidate = await this.userRepo.findOne({
                     where: {
                         id: id
-                    }
+                    },
+                    relations: ["books"]
                 })
 
                 if(!candidate) throw new UnauthorizedException("User wasn't found")
@@ -76,6 +78,9 @@ export class UsersService {
                 relations: ["books"]
             })
 
+            if(!user.books || !user.books.length || user.books.length === 0){
+                user.books = []
+            }
             user.books.push(book)
 
             return await this.userRepo.save(user)

@@ -1,73 +1,115 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+<details>
+  <summary>API Structure</summary>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+  <table>
+    <thead>
+      <tr>
+        <th>Route</th>
+        <th>Description</th>
+        <th>Methods</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>/authors/{id}/books</td>
+        <td>Get books by author ID</td>
+        <td>GET</td>
+      </tr>
+      <tr>
+        <td>/authors</td>
+        <td>Create a new author</td>
+        <td>POST</td>
+      </tr>
+      <tr>
+        <td>/books</td>
+        <td>Create a new book</td>
+        <td>POST</td>
+      </tr>
+      <tr>
+        <td>/books/{id}/history</td>
+        <td>Get borrowing history for a book</td>
+        <td>GET</td>
+      </tr>
+      <tr>
+        <td>/books/borrow</td>
+        <td>Borrow a book</td>
+        <td>POST</td>
+      </tr>
+      <tr>
+        <td>/books/return</td>
+        <td>Return a borrowed book</td>
+        <td>POST</td>
+      </tr>
+      <tr>
+        <td>/auth/sign</td>
+        <td>Sign up a new user</td>
+        <td>POST</td>
+      </tr>
+      <tr>
+        <td>/auth/login</td>
+        <td>Log in user</td>
+        <td>POST</td>
+      </tr>
+      <tr>
+        <td>/genres</td>
+        <td>Create a new genre</td>
+        <td>POST</td>
+      </tr>
+      <tr>
+        <td>/publishers</td>
+        <td>Create/Get a publisher</td>
+        <td>POST/GET</td>
+      </tr>
+    </tbody>
+  </table>
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Additional Information:
+- OpenAPI Version: 3.0.0
+- Title: Advanced Library Management System API
+- Version: 1.0
+- Schemas:
+  - AuthorDto
+  - UserEntity
+  - BookDto
+  - UserDto
+  - GenreDto
+  - PublisherDto
 
-## Description
+</details>
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Schema Design and Relationship Management
 
-## Installation
+### AuthorEntity
+- **id**: Primary key auto-generated ID for each author.
+- **name**: Name of the author.
+- **birthday**: Birthday of the author.
+- **books**: Many-to-many relationship with BookEntity.
 
-```bash
-$ npm install
-```
+### BookEntity
+- **id**: Primary key auto-generated ID for each book.
+- **title**: Title of the book.
+- **isbn**: International Standard Book Number of the book.
+- **authors**: Many-to-many relationship with AuthorEntity.
+- **publisher**: Many-to-one relationship with PublisherEntity.
+- **genres**: Many-to-many relationship with GenreEntity.
+- **currentUser**: Many-to-one relationship with UserEntity representing the current user who has borrowed the book.
+- **history**: JSON field storing the borrowing history of the book.
+- **publishDate**: Publishing date of the book.
 
-## Running the app
+### GenreEntity
+- **id**: Primary key auto-generated ID for each genre.
+- **title**: Title of the genre.
 
-```bash
-# development
-$ npm run start
+### PublisherEntity
+- **id**: Primary key auto-generated ID for each publisher.
+- **title**: Title of the publisher.
+- **establishedYear**: Year the publisher was established.
+- **books**: One-to-many relationship with BookEntity representing the books published by the publisher.
 
-# watch mode
-$ npm run start:dev
+### UserEntity
+- **id**: Primary key auto-generated ID for each user.
+- **books**: One-to-many relationship with BookEntity representing the books borrowed by the user.
+- **role**: Role of the user (e.g., admin, user).
+- **login**: Login username of the user.
+- **password**: Encrypted password of the user.
 
-# production mode
-$ npm run start:prod
-```
-
-## Test
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
