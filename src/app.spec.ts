@@ -173,6 +173,49 @@ describe("Books controller", () => {
         }
     })
 
+    it('/books (GET) - Get paginated and sorted list of books', async () => {
+        const author = await createAndSaveTestAuthor();
+        const genre = await createAndSaveTestGenre();
+        const publisher = await createAndSaveTestPublisher();
+        await createAndSaveTestBook(author, publisher, genre);
+        await createAndSaveTestBook(author, publisher, genre);
+        await createAndSaveTestBook(author, publisher, genre);
+
+        const response = await request(app.getHttpServer())
+            .get('/books')
+            .expect(200);
+
+        expect(response.body).toBeInstanceOf(Array);
+
+        expect(response.body.length).toBe(3); // Assuming there are only 3 test books in the database
+
+        expect(response.body[0].id).toBeLessThan(response.body[1].id);
+        expect(response.body[1].id).toBeLessThan(response.body[2].id);
+    });
+
+    it('/books (GET) - Get paginated and sorted list of books with custom parameters', async () => {
+        const author = await createAndSaveTestAuthor();
+        const genre = await createAndSaveTestGenre();
+        const publisher = await createAndSaveTestPublisher();
+        await createAndSaveTestBook(author, publisher, genre);
+        await createAndSaveTestBook(author, publisher, genre);
+        await createAndSaveTestBook(author, publisher, genre);
+
+        const response = await request(app.getHttpServer())
+            .get('/books')
+            .query({
+                page: 2,
+                limit: 2,
+                sortBy: 'title',
+                sortOrder: 'DESC'
+            })
+            .expect(200);
+
+        expect(response.body).toBeInstanceOf(Array);
+
+        expect(response.body.length).toBe(1);
+    });
+
     it('/books (POST) [AS ADMIN]', async () => {
         const admin = await createAndSaveTestUserAdmin();
         const author = await createAndSaveTestAuthor();
