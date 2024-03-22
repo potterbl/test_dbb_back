@@ -3,6 +3,7 @@ import {InjectRepository} from "@nestjs/typeorm";
 import {PublisherEntity} from "../entities/publisher.entity";
 import {Repository} from "typeorm";
 import {PublisherDto} from "../dto/publisher.dto";
+import {GenreEntity} from "../entities/genre.entity";
 
 @Injectable()
 export class PublishersService {
@@ -13,7 +14,7 @@ export class PublishersService {
     ) {
     }
 
-    async create(publisherDto: PublisherDto) {
+    async create(publisherDto: PublisherDto): Promise<PublisherEntity> {
         try {
             const newPublisher = new PublisherEntity()
 
@@ -26,7 +27,7 @@ export class PublishersService {
         }
     }
 
-    async getPublisher(id: number){
+    async getPublisher(id: number): Promise<PublisherEntity>{
         try {
             const candidate = this.publisherRepo.findOne({
                 where: {
@@ -40,7 +41,7 @@ export class PublishersService {
         }
     }
 
-    async getAll(){
+    async getAll(): Promise<PublisherEntity[]>{
         try {
             return await this.publisherRepo.find({relations: ["books"]})
         } catch (e) {

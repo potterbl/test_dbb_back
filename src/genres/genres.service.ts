@@ -3,6 +3,7 @@ import {InjectRepository} from "@nestjs/typeorm";
 import {GenreEntity} from "../entities/genre.entity";
 import {Repository} from "typeorm";
 import {GenreDto} from "../dto/genre.dto";
+import {AuthorEntity} from "../entities/author.entity";
 
 @Injectable()
 export class GenresService {
@@ -14,7 +15,7 @@ export class GenresService {
 
     }
 
-    async getGenre(id: number){
+    async getGenre(id: number): Promise<GenreEntity>{
         try {
             const genreCandidate = await this.genreRepo.findOne({
                 where: {
@@ -30,7 +31,7 @@ export class GenresService {
         }
     }
 
-    async create (genreDto: GenreDto) {
+    async create (genreDto: GenreDto): Promise<GenreEntity> {
         try {
             const newGenre = new GenreEntity()
 

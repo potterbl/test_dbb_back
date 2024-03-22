@@ -5,6 +5,7 @@ import { GenresService } from './genres.service';
 import { GenreDto } from "../dto/genre.dto";
 import { CheckAuthGuard } from "../middlewares/checkAuth.guard";
 import { CheckRoleGuard } from "../middlewares/checkRole.guard";
+import {GenreEntity} from "../entities/genre.entity";
 
 @ApiTags('genres')
 @Controller('genres')
@@ -17,7 +18,7 @@ export class GenresController {
   @ApiBearerAuth()
   @ApiBody({ type: GenreDto })
   @ApiResponse({ status: 201, description: 'The genre has been successfully created' })
-  async createGenre(@Body() genreDto: GenreDto) {
+  async createGenre(@Body() genreDto: GenreDto): Promise<GenreEntity> {
     return await this.genresService.create(genreDto);
   }
 }

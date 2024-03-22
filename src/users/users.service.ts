@@ -106,7 +106,7 @@ export class UsersService {
         }
     }
 
-    async createUser(userDto: UserDto) {
+    async createUser(userDto: UserDto): Promise<{token: string}> {
         try {
             const newUser = new UserEntity()
 
@@ -128,7 +128,7 @@ export class UsersService {
         }
     }
 
-    async login(userDto: UserDto) {
+    async login(userDto: UserDto): Promise<{token: string}> {
         try {
             const candidate = await this.userRepo.findOne({
                 where: {

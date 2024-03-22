@@ -3,6 +3,7 @@ import {InjectRepository} from "@nestjs/typeorm";
 import {AuthorEntity} from "../entities/author.entity";
 import {Repository} from "typeorm";
 import {AuthorDto} from "../dto/author.dto";
+import {BookEntity} from "../entities/book.entity";
 
 @Injectable()
 export class AuthorsService {
@@ -12,7 +13,7 @@ export class AuthorsService {
     ) {
     }
 
-    async getAuthor(id: number) {
+    async getAuthor(id: number): Promise<AuthorEntity> {
         try {
             const candidate = await this.authorsRepo.findOne({
                 where: {
@@ -29,7 +30,7 @@ export class AuthorsService {
         }
     }
 
-    async getBooks(id: number) {
+    async getBooks(id: number): Promise<BookEntity[]> {
         try {
             const candidate = await this.authorsRepo.findOne({
                 where: { id: id },
@@ -49,7 +50,7 @@ export class AuthorsService {
     }
 
 
-    async create(authorDto: AuthorDto){
+    async create(authorDto: AuthorDto): Promise<AuthorEntity>{
         try {
             const newAuthor = new AuthorEntity()
 
