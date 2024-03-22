@@ -187,7 +187,7 @@ describe("Books controller", () => {
 
         expect(response.body).toBeInstanceOf(Array);
 
-        expect(response.body.length).toBe(3); // Assuming there are only 3 test books in the database
+        expect(response.body.length).toBe(3);
 
         expect(response.body[0].id).toBeLessThan(response.body[1].id);
         expect(response.body[1].id).toBeLessThan(response.body[2].id);
