@@ -86,7 +86,7 @@ Before you proceed, make sure you have the following prerequisites installed:
 
 ### Configuration (.env file)
 
-You need to provide configuration settings in a `.env` file. Below are the required environment variables and :
+You need to provide configuration settings in a `.env` file. Below are the required environment variables and approximate filling:
 
 ```plaintext
 DB_HOST=localhost
