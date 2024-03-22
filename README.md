@@ -1,5 +1,7 @@
+## API Structure
+
 <details>
-  <summary>API Structure</summary>
+  <summary>Click to expand</summary>
 
   <table>
     <thead>
@@ -7,6 +9,7 @@
         <th>Route</th>
         <th>Description</th>
         <th>Methods</th>
+        <th>Parameters</th>
       </tr>
     </thead>
     <tbody>
@@ -14,54 +17,86 @@
         <td>/authors/{id}/books</td>
         <td>Get books by author ID</td>
         <td>GET</td>
+        <td>N/A</td>
       </tr>
       <tr>
         <td>/authors</td>
         <td>Create a new author</td>
         <td>POST</td>
+        <td>N/A</td>
+      </tr>
+<tr>
+        <td>/books</td>
+        <td>Get paginated and sorted list of books</td>
+        <td>GET</td>
+        <td>
+          <ul>
+            <li>`page` (optional): Page number for pagination (default: 1)</li>
+            <li>`limit` (optional): Number of items per page (default: 10)</li>
+            <li>`sortBy` (optional): Field to sort by (default: id)</li>
+            <li>`sortOrder` (optional): Sorting order (ASC or DESC) (default: ASC)</li>
+          </ul>
+        </td>
       </tr>
       <tr>
         <td>/books</td>
         <td>Create a new book</td>
         <td>POST</td>
+        <td>N/A</td>
       </tr>
       <tr>
         <td>/books/{id}/history</td>
         <td>Get borrowing history for a book</td>
         <td>GET</td>
+        <td>N/A</td>
       </tr>
       <tr>
         <td>/books/borrow</td>
         <td>Borrow a book</td>
         <td>POST</td>
+        <td>N/A</td>
       </tr>
       <tr>
         <td>/books/return</td>
         <td>Return a borrowed book</td>
         <td>POST</td>
+        <td>N/A</td>
       </tr>
       <tr>
         <td>/auth/sign</td>
         <td>Sign up a new user</td>
         <td>POST</td>
+        <td>N/A</td>
       </tr>
       <tr>
         <td>/auth/login</td>
         <td>Log in user</td>
         <td>POST</td>
+        <td>N/A</td>
       </tr>
       <tr>
         <td>/genres</td>
         <td>Create a new genre</td>
         <td>POST</td>
+        <td>N/A</td>
       </tr>
       <tr>
         <td>/publishers</td>
-        <td>Create/Get a publisher</td>
-        <td>POST/GET</td>
+        <td>Get a list of publishers</td>
+        <td>GET</td>
+        <td>N/A</td>
+      </tr>
+      <tr>
+        <td>/publishers</td>
+        <td>Create a new publisher</td>
+        <td>POST</td>
+        <td>N/A</td>
       </tr>
     </tbody>
   </table>
+
+</details>
+
 
 Additional Information:
 - OpenAPI Version: 3.0.0
@@ -74,8 +109,6 @@ Additional Information:
   - UserDto
   - GenreDto
   - PublisherDto
-
-</details>
 
 ### Prerequisites
 

@@ -1,6 +1,6 @@
 import {ConflictException, Injectable, NotFoundException} from '@nestjs/common';
 import {InjectRepository} from "@nestjs/typeorm";
-import {BookEntity} from "../entities/book.entity";
+import {BookEntity, IHistory} from "../entities/book.entity";
 import {Repository} from "typeorm";
 import {UsersService} from "../users/users.service";
 import {BookDto} from "../dto/book.dto";
@@ -62,7 +62,7 @@ export class BooksService {
         }
     }
 
-    async borrowBook(bookId: number, token: string){
+    async borrowBook(bookId: number, token: string): Promise<BookEntity>{
         try {
             const user = await this.usersService.getUser({token: token})
 
@@ -91,7 +91,7 @@ export class BooksService {
         }
     }
 
-    async returnBook(bookId: number, token: string){
+    async returnBook(bookId: number, token: string): Promise<BookEntity>{
         try {
             const user = await this.usersService.getUser({token: token})
 
@@ -117,7 +117,7 @@ export class BooksService {
         }
     }
 
-    async getHistory(bookId: number){
+    async getHistory(bookId: number): Promise<IHistory[]>{
         try {
             const book = await this.bookRepo.findOne({
                 where: {
@@ -135,6 +135,26 @@ export class BooksService {
             return book.history
         } catch (e) {
             throw e
+        }
+    }
+
+    async getAll(
+        page: number,
+        limit: number,
+        sortBy: string,
+        sortOrder: 'ASC' | 'DESC',
+    ): Promise<BookEntity[]> {
+        try {
+            const skip = (page - 1) * limit;
+            return await this.bookRepo.find({
+                order: {
+                    [sortBy]: sortOrder,
+                },
+                skip,
+                take: limit,
+            });
+        } catch (e) {
+            throw e;
         }
     }
 }
